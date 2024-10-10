@@ -233,5 +233,3 @@ Authorization: Bearer <TOKEN>
 
 Este serviço de autenticação é parte fundamental do sistema de gerenciamento de usuários. Ele oferece uma base segura e escalável para autenticação e autorização, usando as melhores práticas de segurança e frameworks de mercado.
 ```
-
-Você pode usar este `README.md` como base para documentar seu projeto. Se houver mais endpoints ou alterações no serviço, você pode atualizar esta documentação conforme necessário.
