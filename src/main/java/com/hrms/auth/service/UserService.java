@@ -17,14 +17,14 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service  // Indica que esta classe é um serviço que contém lógica de negócio e será gerenciada pelo Spring.
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Injeção via construtor para evitar referências circulares
+    // Injeção via construtor para evitar dependências circulares e garantir que as dependências sejam injetadas corretamente.
     @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -32,49 +32,51 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Método para carregar um usuário pelo nome de usuário (usado pelo Spring Security)
+    // Sobrescreve o método `loadUserByUsername` do `UserDetailsService` para carregar o usuário pelo nome de usuário.
+    // Usado pelo Spring Security para autenticar o usuário.
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);  // Busca o usuário pelo nome de usuário.
 
         if (!user.isPresent()) {
+            // Lança uma exceção caso o usuário não seja encontrado.
             throw new UsernameNotFoundException("Usuário não encontrado com nome de usuário: " + username);
         }
 
+        // Retorna um objeto `UserDetails` que contém o nome de usuário, senha e permissões (roles).
         return new org.springframework.security.core.userdetails.User(
                 user.get().getUsername(),
                 user.get().getPassword(),
-                getAuthorities(user.get())
+                getAuthorities(user.get())  // Busca as permissões (roles) do usuário.
         );
     }
 
-    // Método para criar um novo usuário no sistema
+    // Método para criar um novo usuário no sistema.
     public User createUser(User user) {
-        // Verificar se o usuário já existe
+        // Verifica se o nome de usuário já existe no banco de dados.
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new IllegalArgumentException("Nome de usuário já existe: " + user.getUsername());
         }
 
-        // Codificar a senha do usuário antes de salvar no banco de dados
+        // Codifica a senha do usuário antes de salvar no banco de dados.
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Verificar se a role do usuário existe
+        // Verifica se a role associada ao usuário existe no banco de dados.
         Role role = roleRepository.findByName(user.getRoles().iterator().next().getName())
                 .orElseThrow(() -> new IllegalArgumentException("Role não encontrada: " + user.getRoles().iterator().next().getName()));
 
-        // Adicionar a role ao usuário
+        // Atualiza a role do usuário.
         user.updateRole(role);
 
-        // Salvar o usuário no banco de dados
+        // Salva o usuário no banco de dados e retorna o objeto salvo.
         return userRepository.save(user);
     }
 
-
-    // Método para retornar as permissões (roles) de um usuário
+    // Método privado para obter as permissões (roles) de um usuário.
+    // O Spring Security usa essas permissões para aplicar regras de segurança no sistema.
     private Collection<? extends GrantedAuthority> getAuthorities(User user) {
         return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))  // Aqui `role.getName()` deve funcionar
-                .collect(Collectors.toList());
+                .map(role -> new SimpleGrantedAuthority(role.getName()))  // Converte cada role em uma autoridade reconhecida pelo Spring Security.
+                .collect(Collectors.toList());  // Converte a lista de roles em uma lista de autoridades.
     }
-
 }

@@ -20,57 +20,61 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;  // Gerencia a autenticação de usuários
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private JwtTokenUtil jwtTokenUtil;  // Utilitário para geração e validação de tokens JWT
 
     @Autowired
-    private UserService userService;
+    private UserService userService;  // Serviço que lida com operações relacionadas ao usuário
 
-    // Endpoint para autenticar o usuário e gerar o token JWT
+    // Endpoint para o cadastro de novos usuários
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
+        // Log para mostrar as roles recebidas
         System.out.println("Roles: " + user.getRoles());
         try {
+            // Chama o serviço para criar um novo usuário
             userService.createUser(user);
             return ResponseEntity.ok("Usuário criado com sucesso!");
         } catch (IllegalArgumentException e) {
+            // Retorna uma resposta de erro se o nome de usuário já estiver em uso
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
+    // Endpoint para login e geração de token JWT
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            // Tentar autenticar o usuário com base nas credenciais fornecidas
+            // Tenta autenticar o usuário com o nome de usuário e senha fornecidos
             System.out.println("\nUsername: " + loginRequest.getUsername() + " Password: " + loginRequest.getPassword());
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
 
-            // Colocar as informações do usuário autenticado no contexto de segurança do Spring
+            // Coloca a autenticação no contexto de segurança do Spring
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // Obter os detalhes do usuário autenticado
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            // Gerar o token JWT para o usuário autenticado
+            // Gera o token JWT com base nas informações do usuário autenticado
             String token = jwtTokenUtil.generateToken(userDetails);
             System.out.println("\nToken: " + token);
 
-            // Retornar a resposta contendo o token JWT
+            // Retorna a resposta com o token gerado
             return ResponseEntity.ok(new JwtResponse(token));
         } catch (Exception e) {
-            // Capturar exceções de autenticação e retornar uma resposta apropriada
+            // Captura exceções de autenticação e retorna uma resposta de erro
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
     }
 
-    // Endpoint para logout (opcional, pode ser apenas informativo no caso de JWT)
+    // Endpoint para logout (informativo, já que o JWT é stateless)
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        // Aqui, como JWT é stateless, o logout pode ser uma resposta informativa
+        // JWT não tem um estado de sessão, então este logout é puramente informativo
         return ResponseEntity.ok("Logout realizado com sucesso.");
     }
 }

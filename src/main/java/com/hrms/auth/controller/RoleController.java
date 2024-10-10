@@ -16,73 +16,77 @@ import java.security.Principal;
 public class RoleController {
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleRepository roleRepository;  // Repositório para interagir com as roles (perfis de usuário)
 
+    // Endpoint para criar uma nova role
     @PostMapping("/create")
     public ResponseEntity<String> createRole(@RequestBody @Valid Role role, Authentication authentication) {
-        // Verificar se o usuário autenticado tem ROLE_SUPERUSER ou ROLE_ADMIN
+        // Verifica se o usuário autenticado tem o papel de ROLE_SUPERUSER ou ROLE_ADMIN
 
-
-        //CONFIRMAR NO LOG O RECEBIMENTO DOS PARÂMETROS E DO TOKEN PELO AUTHORIZATION
-        //System.out.println("Token: " + authentication.getCredentials());
+        // Exibe o principal (usuário logado) no log para verificação
         System.out.println("Principal: " + authentication.getPrincipal());
 
-        //CONFIRMAR NO LOG O RECEBIMENTO DO OBJETO ROLE
-        System.out.println("Role: " + role.getName());
+        // Confirma no log o recebimento do objeto role
         System.out.println("Role: " + role.getName());
 
+        // Verifica se o usuário autenticado tem permissão (ROLE_SUPERUSER ou ROLE_ADMIN)
         if (authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority ->
-                        grantedAuthority.getAuthority().equals("ROLE_SUPERUSER") ||
-                                grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_SUPERUSER") ||
+                        grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
 
+            // Se a role já existir, retorna um erro
             if (roleRepository.existsByName(role.getName())) {
                 return ResponseEntity.badRequest().body("Role já existe");
             }
 
+            // Salva a nova role no banco de dados
             roleRepository.save(role);
             return ResponseEntity.ok("Role criada com sucesso");
         } else {
+            // Se o usuário não tiver permissão, retorna um status de proibição
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Você não tem permissão para criar roles");
         }
     }
 
+    // Endpoint para listar todas as roles
     @GetMapping("/list")
     public ResponseEntity<?> listRoles(Principal principal) {
-        //CONFIRMAR NO LOG O RECEBIMENTO DO PRINCIPAL
+        // Confirma no log o usuário que fez a solicitação
         System.out.println("Principal: " + principal.getName());
 
+        // Retorna a lista de todas as roles no sistema
         return ResponseEntity.ok(roleRepository.findAll());
     }
 
+    // Endpoint para atualizar uma role existente
     @PutMapping("/update/{id}")
     public ResponseEntity<String> updateRole(@PathVariable Long id, @RequestBody @Valid Role role, Authentication authentication) {
-        // Verificar se o usuário autenticado tem ROLE_SUPERUSER ou ROLE_ADMIN
+        // Verifica se o usuário autenticado tem o papel de ROLE_SUPERUSER ou ROLE_ADMIN
 
-        //CONFIRMAR NO LOG O RECEBIMENTO DOS PARÂMETROS E DO TOKEN PELO AUTHORIZATION
-        //System.out.println("Token: " + authentication.getCredentials());
+        // Exibe o principal (usuário logado) no log para verificação
         System.out.println("Principal: " + authentication.getPrincipal());
 
-        //CONFIRMAR NO LOG O RECEBIMENTO DO OBJETO ROLE
-        System.out.println("Role: " + role.getName());
+        // Confirma no log o recebimento do objeto role
         System.out.println("Role: " + role.getName());
 
+        // Verifica se o usuário autenticado tem permissão (ROLE_SUPERUSER ou ROLE_ADMIN)
         if (authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority ->
-                        grantedAuthority.getAuthority().equals("ROLE_SUPERUSER") ||
-                                grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_SUPERUSER") ||
+                        grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
 
+            // Se a role com o ID fornecido existir, ela é atualizada
             if (roleRepository.existsById(id)) {
                 Role roleToUpdate = roleRepository.getOne(id);
                 roleToUpdate.setName(role.getName());
                 roleRepository.save(roleToUpdate);
                 return ResponseEntity.ok("Role atualizada com sucesso");
             } else {
+                // Se a role não for encontrada, retorna um erro
                 return ResponseEntity.badRequest().body("Role não encontrada");
             }
         } else {
+            // Se o usuário não tiver permissão, retorna um status de proibição
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Você não tem permissão para atualizar roles");
         }
     }
 }
-
