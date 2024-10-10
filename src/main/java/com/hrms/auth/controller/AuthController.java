@@ -1,6 +1,7 @@
 package com.hrms.auth.controller;
 
-import com.hrms.auth.dto.SignupRequest;
+import com.hrms.auth.dto.JwtResponse;
+import com.hrms.auth.dto.LoginRequest;
 import com.hrms.auth.model.User;
 import com.hrms.auth.security.JwtTokenUtil;
 import com.hrms.auth.service.UserService;

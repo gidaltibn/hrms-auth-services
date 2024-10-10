@@ -1,4 +1,4 @@
-package com.hrms.auth.controller;
+package com.hrms.auth.dto;
 
 public class LoginRequest {
     private String username;
