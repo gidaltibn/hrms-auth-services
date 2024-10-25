@@ -77,4 +77,29 @@ public class AuthController {
         // JWT não tem um estado de sessão, então este logout é puramente informativo
         return ResponseEntity.ok("Logout realizado com sucesso.");
     }
+
+    // Endpoint para verificar se o token JWT é válido
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestHeader(name = "Authorization") String token) {
+        // Remove o prefixo "Bearer " do token, se existir
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        try {
+            // Extrai o nome de usuário do token
+            String username = jwtTokenUtil.getUsernameFromToken(token);
+
+            // Verifica se o token é válido
+            if (jwtTokenUtil.validateToken(token, username)) {
+                return ResponseEntity.ok("Token válido");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();  // Exibe detalhes do erro no console para depuração
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido2");
+        }
+    }
+
 }

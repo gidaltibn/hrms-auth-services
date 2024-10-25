@@ -15,16 +15,15 @@ public class JwtTokenUtil {
 
     // Método para gerar e retornar um token JWT com base nos detalhes do usuário (username)
     public String generateToken(UserDetails userDetails) {
-        System.out.println(jwtSecret);  // Imprime a chave secreta para fins de depuração
         try {
             // Constrói o JWT com o nome de usuário como "subject", data de emissão e data de expiração, e assina usando a chave secreta e o algoritmo HS512
             String token = Jwts.builder()
                     .setSubject(userDetails.getUsername())  // Define o nome de usuário como "subject" do token
+                    .claim("roles", userDetails.getAuthorities())  // Adiciona as permissões (roles) do usuário ao token
                     .setIssuedAt(new Date())  // Data de criação do token
                     .setExpiration(new Date(new Date().getTime() + jwtExpirationMs))  // Define a data de expiração do token
                     .signWith(SignatureAlgorithm.HS512, jwtSecret)  // Assina o token com a chave secreta
                     .compact();  // Gera o token final
-            System.out.println("Generated Token: " + token);  // Imprime o token gerado
             return token;  // Retorna o token JWT
         } catch (Exception e) {
             System.err.println("Error generating token: " + e.getMessage());  // Captura e exibe erros durante a geração do token
@@ -51,10 +50,12 @@ public class JwtTokenUtil {
 
     // Método auxiliar para obter o nome de usuário diretamente a partir do token JWT
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
+        String username = Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();  // Retorna o "subject" (nome de usuário) a partir do token
+
+        return username;  // Retorna o nome de usuário extraído do token
     }
 }
