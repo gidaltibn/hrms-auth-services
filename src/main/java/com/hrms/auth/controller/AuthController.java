@@ -2,6 +2,7 @@ package com.hrms.auth.controller;
 
 import com.hrms.auth.dto.JwtResponse;
 import com.hrms.auth.dto.LoginRequest;
+import com.hrms.auth.model.Role;
 import com.hrms.auth.model.User;
 import com.hrms.auth.security.JwtTokenUtil;
 import com.hrms.auth.service.UserService;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,14 +34,23 @@ public class AuthController {
     // Endpoint para o cadastro de novos usuários
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
-        // Log para mostrar as roles recebidas
-        System.out.println("Roles: " + user.getRoles());
         try {
-            // Chama o serviço para criar um novo usuário
+            // Se o conjunto de roles for null ou vazio, cria uma nova role padrão
+            if (user.getRoles() == null || user.getRoles().isEmpty()) {
+                Role defaultRole = new Role("ROLE_USER"); // Gera a role padrão
+                user.addRole(defaultRole); // Adiciona ao usuário
+            } else {
+                // Filtra para garantir que apenas ROLE_USER seja atribuída
+                user.setRoles(
+                        user.getRoles().stream()
+                                .filter(role -> role.getName().equals("ROLE_USER"))
+                                .collect(Collectors.toSet())
+                );
+            }
+
             userService.createUser(user);
             return ResponseEntity.ok("Usuário criado com sucesso!");
         } catch (IllegalArgumentException e) {
-            // Retorna uma resposta de erro se o nome de usuário já estiver em uso
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

@@ -50,9 +50,7 @@ public class RoleController {
 
     // Endpoint para listar todas as roles
     @GetMapping("/list")
-    public ResponseEntity<?> listRoles(Principal principal) {
-        // Confirma no log o usuário que fez a solicitação
-        System.out.println("Principal: " + principal.getName());
+    public ResponseEntity<?> listRoles() {
 
         // Retorna a lista de todas as roles no sistema
         return ResponseEntity.ok(roleRepository.findAll());

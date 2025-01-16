@@ -36,7 +36,7 @@ spring.jpa.hibernate.ddl-auto=update
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/your-username/auth-service.git
+git clone https://github.com/gidaltibn/auth-service.git
 ```
 
 2. Compile o projeto com Maven:
@@ -57,17 +57,22 @@ mvn spring-boot:run
 
 - **`POST /auth/signup`**  
   **Descrição:** Cria um novo usuário no sistema.  
-  **Exemplo de corpo da requisição:**
+  **Formato do JSON de submissão:**
   ```json
   {
-      "name": "John Doe",
-      "username": "johndoe",
-      "password": "password123",
-      "email": "johndoe@example.com",
-      "cpf": "12345678901",
-      "phone": "5511999999999",
-      "dataNascimento": "1990-01-01",
-      "role": ["ROLE_USER"]
+    "name": "John Doe",
+    "username": "johndoe",
+    "password": "password123",
+    "email": "johndoe@example.com",
+    "cpf": "12345678901",
+    "phone": "5511999999999",
+    "dataNascimento": "1990-01-01",
+    "roles": [
+      {
+        "id": 1,
+        "name": "ROLE_USER"
+      }
+    ]
   }
   ```
   **Resposta de sucesso:**  
@@ -80,18 +85,18 @@ mvn spring-boot:run
 
 - **`POST /auth/login`**  
   **Descrição:** Realiza login de um usuário, autenticando-o e gerando um token JWT.  
-  **Exemplo de corpo da requisição:**
+  **Formato do JSON de submissão:**
   ```json
   {
-      "username": "johndoe",
-      "password": "password123"
+    "username": "johndoe",
+    "password": "password123"
   }
   ```
   **Resposta de sucesso:**  
   `200 OK`
   ```json
   {
-      "token": "eyJhbGciOiJIUzUxMiJ9..."
+    "token": "eyJhbGciOiJIUzUxMiJ9..."
   }
   ```
 
@@ -105,14 +110,23 @@ mvn spring-boot:run
   `200 OK`  
   `"Logout realizado com sucesso."`
 
+- **`GET /auth/validate`**  
+  **Descrição:** Valida um token JWT.  
+  **Formato do cabeçalho:**
+  ```
+  Authorization: Bearer <token>
+  ```
+
+---
+
 ### **RoleController**
 
 - **`POST /roles/create`**  
   **Descrição:** Cria uma nova role no sistema.  
-  **Exemplo de corpo da requisição:**
+  **Formato do JSON de submissão:**
   ```json
   {
-      "name": "ROLE_ADMIN"
+    "name": "ROLE_ADMIN"
   }
   ```
   **Resposta de sucesso:**  
@@ -146,10 +160,10 @@ mvn spring-boot:run
 
 - **`PUT /roles/update/{id}`**  
   **Descrição:** Atualiza uma role existente com o ID fornecido.  
-  **Exemplo de corpo da requisição:**
+  **Formato do JSON de submissão:**
   ```json
   {
-      "name": "ROLE_SUPERUSER"
+    "name": "ROLE_SUPERUSER"
   }
   ```
   **Resposta de sucesso:**  
@@ -164,16 +178,24 @@ mvn spring-boot:run
   `403 Forbidden`  
   `"Você não tem permissão para atualizar roles"`
 
+---
+
 ### **UserController**
 
 - **`PUT /users/update/{id}`**  
   **Descrição:** Atualiza as informações de um usuário existente.  
-  **Exemplo de corpo da requisição:**
+  **Formato do JSON de submissão:**
   ```json
   {
-      "name": "John Doe",
-      "email": "johndoe@example.com",
-      "phone": "5511999999999"
+    "name": "Jane Doe",
+    "email": "janedoe@example.com",
+    "phone": "5511987654321",
+    "roles": [
+      {
+        "id": 2,
+        "name": "ROLE_ADMIN"
+      }
+    ]
   }
   ```
   **Resposta de sucesso:**  
@@ -212,7 +234,25 @@ mvn spring-boot:run
       "id": 1,
       "name": "John Doe",
       "username": "johndoe",
-      "email": "johndoe@example.com"
+      "email": "johndoe@example.com",
+      "roles": [
+        {
+          "id": 1,
+          "name": "ROLE_USER"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Jane Doe",
+      "username": "janedoe",
+      "email": "janedoe@example.com",
+      "roles": [
+        {
+          "id": 2,
+          "name": "ROLE_ADMIN"
+        }
+      ]
     }
   ]
   ```
@@ -221,6 +261,8 @@ mvn spring-boot:run
   `403 Forbidden`  
   `"Você não tem permissão para listar usuários"`
 
+---
+
 ## Segurança
 
 Este projeto utiliza o Spring Security com autenticação JWT. As credenciais de login são verificadas e, se válidas, um token JWT é retornado. O token deve ser incluído no header `Authorization` das requisições subsequentes no seguinte formato:
@@ -228,6 +270,8 @@ Este projeto utiliza o Spring Security com autenticação JWT. As credenciais de
 ```http
 Authorization: Bearer <TOKEN>
 ```
+
+---
 
 ## Considerações Finais
 
